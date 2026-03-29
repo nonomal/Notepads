@@ -1,11 +1,15 @@
-﻿namespace Notepads.Services
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Services
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Windows.Storage;
     using Windows.Storage.AccessCache;
-    using Microsoft.AppCenter.Analytics;
 
     public static class MRUService
     {
@@ -19,7 +23,7 @@
             }
             catch (Exception ex)
             {
-                Analytics.TrackEvent("MRUService_FailedToAddStorageItemToMRU", new Dictionary<string, string>()
+                AnalyticsService.TrackEvent("MRUService_FailedToAddStorageItemToMRU", new Dictionary<string, string>()
                 {
                     { "Exception", ex.ToString() }
                 });
@@ -27,7 +31,7 @@
             }
         }
 
-        public static async Task<IList<IStorageItem>> Get(int top = 10)
+        public static async Task<IList<IStorageItem>> GetMostRecentlyUsedListAsync(int top = 10)
         {
             IList<IStorageItem> items = new List<IStorageItem>();
 
@@ -53,7 +57,7 @@
             }
             catch (Exception ex)
             {
-                Analytics.TrackEvent("MRUService_FailedToGetMRU", new Dictionary<string, string>()
+                AnalyticsService.TrackEvent("MRUService_FailedToGetMRU", new Dictionary<string, string>()
                 {
                     { "Exception", ex.ToString() }
                 });
@@ -70,7 +74,7 @@
             }
             catch (Exception ex)
             {
-                Analytics.TrackEvent("MRUService_FailedToClearMRU", new Dictionary<string, string>()
+                AnalyticsService.TrackEvent("MRUService_FailedToClearMRU", new Dictionary<string, string>()
                 {
                     { "Exception", ex.ToString() }
                 });

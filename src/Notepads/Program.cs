@@ -1,4 +1,9 @@
-﻿namespace Notepads
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads
 {
     using System;
     using System.Linq;
@@ -75,13 +80,13 @@
 
         private static void OpenNewInstance()
         {
-            AppInstance.FindOrRegisterInstanceForKey(App.Id.ToString());
+            AppInstance.FindOrRegisterInstanceForKey(App.InstanceId.ToString());
             Windows.UI.Xaml.Application.Start(p => new App());
         }
 
         private static void RedirectOrCreateNewInstance()
         {
-            var instance = (GetLastActiveInstance() ?? AppInstance.FindOrRegisterInstanceForKey(App.Id.ToString()));
+            var instance = (GetLastActiveInstance() ?? AppInstance.FindOrRegisterInstanceForKey(App.InstanceId.ToString()));
 
             if (instance.IsCurrentInstance)
             {

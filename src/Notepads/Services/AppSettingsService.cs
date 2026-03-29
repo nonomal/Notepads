@@ -1,4 +1,9 @@
-﻿namespace Notepads.Services
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Services
 {
     using System;
     using System.Text;
@@ -247,6 +252,18 @@
             }
         }
 
+        private static bool _exitWhenLastTabClosed;
+
+        public static bool ExitWhenLastTabClosed
+        {
+            get => _exitWhenLastTabClosed;
+            set
+            {
+                _exitWhenLastTabClosed = value;
+                ApplicationSettingsStore.Write(SettingsKey.ExitWhenLastTabClosed, value);
+            }
+        }
+
         private static bool _alwaysOpenNewWindow;
 
         public static bool AlwaysOpenNewWindow
@@ -311,6 +328,8 @@
             InitializeSessionSnapshotSettings();
 
             InitializeAppOpeningPreferencesSettings();
+
+            InitializeAppClosingPreferencesSettings();
         }
 
         private static void InitializeStatusBarSettings()
@@ -566,6 +585,18 @@
             else
             {
                 _alwaysOpenNewWindow = false;
+            }
+        }
+
+        private static void InitializeAppClosingPreferencesSettings()
+        {
+            if (ApplicationSettingsStore.Read(SettingsKey.ExitWhenLastTabClosed) is bool exitWhenLastTabClosed)
+            {
+                _exitWhenLastTabClosed = exitWhenLastTabClosed;
+            }
+            else
+            {
+                _exitWhenLastTabClosed = false;
             }
         }
     }

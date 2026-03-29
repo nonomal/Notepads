@@ -1,4 +1,9 @@
-﻿namespace Notepads.Services
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Services
 {
     using System;
     using Microsoft.Toolkit.Uwp.Helpers;
@@ -285,7 +290,7 @@
                     hostBackdropAcrylicBrush.TintOpacity = (float)AppBackgroundPanelTintOpacity;
                     return _currentAppBackgroundBrush;
                 }
-                return _currentAppBackgroundBrush = BrushUtility.GetHostBackdropAcrylicBrush(baseColor, (float)AppBackgroundPanelTintOpacity).Result;
+                return _currentAppBackgroundBrush = BrushUtility.GetHostBackdropAcrylicBrushAsync(baseColor, (float)AppBackgroundPanelTintOpacity).Result;
             }
         }
 

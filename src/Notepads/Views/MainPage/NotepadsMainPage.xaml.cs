@@ -1,4 +1,9 @@
-﻿namespace Notepads.Views.MainPage
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Views.MainPage
 {
     using System;
     using System.Collections.Generic;
@@ -25,7 +30,6 @@
     using Windows.UI.Xaml.Input;
     using Windows.UI.Xaml.Media.Animation;
     using Windows.UI.Xaml.Navigation;
-    using Microsoft.AppCenter.Analytics;
     using Windows.Graphics.Printing;
 
     public sealed partial class NotepadsMainPage : Page
@@ -39,7 +43,7 @@
         private readonly ResourceLoader _resourceLoader = ResourceLoader.GetForCurrentView();
 
         private bool _loaded = false;
-        private bool _appShouldExitAfterLastEditorClosed = false;
+        private bool _lastTabMovedToAnotherInstance = false;
 
         private INotepadsCore _notepadsCore;
 
@@ -47,24 +51,23 @@
         {
             get
             {
-                if (_notepadsCore == null)
-                {
-                    _notepadsCore = new NotepadsCore(Sets, new NotepadsExtensionProvider(), Dispatcher);
-                    _notepadsCore.StorageItemsDropped += OnStorageItemsDropped;
-                    _notepadsCore.TextEditorLoaded += OnTextEditorLoaded;
-                    _notepadsCore.TextEditorUnloaded += OnTextEditorUnloaded;
-                    _notepadsCore.TextEditorKeyDown += OnTextEditorKeyDown;
-                    _notepadsCore.TextEditorClosing += OnTextEditorClosing;
-                    _notepadsCore.TextEditorSaved += OnTextEditorSaved;
-                    _notepadsCore.TextEditorMovedToAnotherAppInstance += OnTextEditorMovedToAnotherAppInstance;
-                    _notepadsCore.TextEditorRenamed += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) SetupStatusBar(editor); };
-                    _notepadsCore.TextEditorSelectionChanged += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) UpdateLineColumnIndicator(editor); };
-                    _notepadsCore.TextEditorFontZoomFactorChanged += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) UpdateFontZoomIndicator(editor); };
-                    _notepadsCore.TextEditorEncodingChanged += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) UpdateEncodingIndicator(editor.GetEncoding()); };
-                    _notepadsCore.TextEditorLineEndingChanged += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) { UpdateLineEndingIndicator(editor.GetLineEnding()); UpdateLineColumnIndicator(editor); } };
-                    _notepadsCore.TextEditorEditorModificationStateChanged += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) SetupStatusBar(editor); };
-                    _notepadsCore.TextEditorFileModificationStateChanged += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) OnTextEditorFileModificationStateChanged(editor); };
-                }
+                if (_notepadsCore != null) return _notepadsCore;
+
+                _notepadsCore = new NotepadsCore(Sets, new NotepadsExtensionProvider(), Dispatcher);
+                _notepadsCore.StorageItemsDropped += OnStorageItemsDropped;
+                _notepadsCore.TextEditorLoaded += OnTextEditorLoaded;
+                _notepadsCore.TextEditorUnloaded += OnTextEditorUnloaded;
+                _notepadsCore.TextEditorKeyDown += OnTextEditorKeyDown;
+                _notepadsCore.TextEditorClosing += OnTextEditorClosing;
+                _notepadsCore.TextEditorSaved += OnTextEditorSaved;
+                _notepadsCore.TextEditorMovedToAnotherAppInstance += OnTextEditorMovedToAnotherAppInstance;
+                _notepadsCore.TextEditorRenamed += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) SetupStatusBar(editor); };
+                _notepadsCore.TextEditorSelectionChanged += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) UpdateLineColumnIndicator(editor); };
+                _notepadsCore.TextEditorFontZoomFactorChanged += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) UpdateFontZoomIndicator(editor); };
+                _notepadsCore.TextEditorEncodingChanged += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) UpdateEncodingIndicator(editor.GetEncoding()); };
+                _notepadsCore.TextEditorLineEndingChanged += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) { UpdateLineEndingIndicator(editor.GetLineEnding()); UpdateLineColumnIndicator(editor); } };
+                _notepadsCore.TextEditorEditorModificationStateChanged += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) SetupStatusBar(editor); };
+                _notepadsCore.TextEditorFileModificationStateChanged += (sender, editor) => { if (NotepadsCore.GetSelectedTextEditor() == editor) OnTextEditorFileModificationStateChanged(editor); };
 
                 return _notepadsCore;
             }
@@ -137,13 +140,13 @@
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, true, VirtualKey.Tab, (args) => NotepadsCore.SwitchTo(false)),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.N, (args) => NotepadsCore.OpenNewTextEditor(_defaultNewFileName)),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.T, (args) => NotepadsCore.OpenNewTextEditor(_defaultNewFileName)),
-                new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.O, async (args) => await OpenNewFiles()),
-                new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.S, async (args) => await Save(NotepadsCore.GetSelectedTextEditor(), saveAs: false, ignoreUnmodifiedDocument: true)),
-                new KeyboardCommand<KeyRoutedEventArgs>(true, false, true, VirtualKey.S, async (args) => await Save(NotepadsCore.GetSelectedTextEditor(), saveAs: true)),
-                new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.P, async (args) => await Print(NotepadsCore.GetSelectedTextEditor())),
-                new KeyboardCommand<KeyRoutedEventArgs>(true, false, true, VirtualKey.P, async (args) => await PrintAll(NotepadsCore.GetAllTextEditors())),
-                new KeyboardCommand<KeyRoutedEventArgs>(true, false, true, VirtualKey.R, (args) => { ReloadFileFromDisk(this, new RoutedEventArgs()); }),
-                new KeyboardCommand<KeyRoutedEventArgs>(true, false, true, VirtualKey.N, async (args) => await OpenNewAppInstance()),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.O, async (args) => await OpenNewFilesAsync()),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.S, async (args) => await SaveAsync(NotepadsCore.GetSelectedTextEditor(), saveAs: false, ignoreUnmodifiedDocument: true)),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, false, true, VirtualKey.S, async (args) => await SaveAsync(NotepadsCore.GetSelectedTextEditor(), saveAs: true)),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.P, async (args) => await PrintAsync(NotepadsCore.GetSelectedTextEditor())),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, false, true, VirtualKey.P, async (args) => await PrintAllAsync(NotepadsCore.GetAllTextEditors())),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, false, true, VirtualKey.R, (args) => ReloadFileFromDiskAsync(this, new RoutedEventArgs())),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, false, true, VirtualKey.N, async (args) => await OpenNewAppInstanceAsync()),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.Number1, (args) => NotepadsCore.SwitchTo(0)),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.Number2, (args) => NotepadsCore.SwitchTo(1)),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.Number3, (args) => NotepadsCore.SwitchTo(2)),
@@ -153,20 +156,20 @@
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.Number7, (args) => NotepadsCore.SwitchTo(6)),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.Number8, (args) => NotepadsCore.SwitchTo(7)),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.Number9, (args) => NotepadsCore.SwitchTo(8)),
-                new KeyboardCommand<KeyRoutedEventArgs>(VirtualKey.F11, (args) => { EnterExitFullScreenMode(); }),
-                new KeyboardCommand<KeyRoutedEventArgs>(VirtualKey.F12, (args) => { EnterExitCompactOverlayMode(); }),
+                new KeyboardCommand<KeyRoutedEventArgs>(VirtualKey.F11, (args) => EnterExitFullScreenMode()),
+                new KeyboardCommand<KeyRoutedEventArgs>(VirtualKey.F12, (args) => EnterExitCompactOverlayMode()),
                 new KeyboardCommand<KeyRoutedEventArgs>(VirtualKey.Escape, (args) => { if (RootSplitView.IsPaneOpen) RootSplitView.IsPaneOpen = false; }),
                 new KeyboardCommand<KeyRoutedEventArgs>(VirtualKey.F1, (args) => { if (App.IsPrimaryInstance && !App.IsGameBarWidget) RootSplitView.IsPaneOpen = !RootSplitView.IsPaneOpen; }),
-                new KeyboardCommand<KeyRoutedEventArgs>(VirtualKey.F2, async (args) => { await RenameFileAsync(NotepadsCore.GetSelectedTextEditor()); }),
-                new KeyboardCommand<KeyRoutedEventArgs>(true, true, true, VirtualKey.L, async (args) => { await OpenFile(LoggingService.GetLogFile(), rebuildOpenRecentItems: false); })
+                new KeyboardCommand<KeyRoutedEventArgs>(VirtualKey.F2, async (args) => await RenameFileAsync(NotepadsCore.GetSelectedTextEditor())),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, true, true, VirtualKey.L, async (args) => { await OpenFileAsync(LoggingService.GetLogFile(), rebuildOpenRecentItems: false); })
             });
         }
 
-        private static async Task OpenNewAppInstance()
+        private static async Task OpenNewAppInstanceAsync()
         {
             if (!await NotepadsProtocolService.LaunchProtocolAsync(NotepadsOperationProtocol.OpenNewInstance))
             {
-                Analytics.TrackEvent("FailedToOpenNewAppInstance");
+                AnalyticsService.TrackEvent("FailedToOpenNewAppInstance");
             }
         }
 
@@ -206,22 +209,52 @@
                 {
                     loadedCount = await SessionManager.LoadLastSessionAsync();
                 }
-                catch (Exception ex)
+                catch (SessionDataCorruptedException ex)
                 {
                     LoggingService.LogError($"[{nameof(NotepadsMainPage)}] Failed to load last session: {ex}");
-                    Analytics.TrackEvent("FailedToLoadLastSession", new Dictionary<string, string> { { "Exception", ex.ToString() } });
+
+                    // Last session data is corrupted, clear it first
+                    await SessionManager.ClearSessionDataAsync();
+
+                    // Recover backup files
+                    int numberOfRecoveredFiles = await SessionManager.RecoverBackupFilesAsync();
+
+                    LoggingService.LogInfo($"[{nameof(NotepadsMainPage)}] {numberOfRecoveredFiles} file(s) recovered from last session backup.");
+
+                    AnalyticsService.TrackEvent("SessionManager_FailedToLoadLastSession_SessionDataCorruptedException",
+                        new Dictionary<string, string>()
+                        {
+                            { "Exception", ex.Message },
+                            { "NumberOfRecoveredFiles", numberOfRecoveredFiles.ToString() }
+                        });
+
+                    // Show session recovery dialog if there are any recovered files
+                    if (numberOfRecoveredFiles > 0)
+                    {
+                        var sessionCorruptionErrorDialog = new SessionCorruptionErrorDialog(
+                            recoveryAction: async () =>
+                            {
+                                await SessionManager.OpenSessionBackupFolderAsync();
+                            });
+                        await DialogManager.OpenDialogAsync(sessionCorruptionErrorDialog, awaitPreviousDialog: false);
+                    }
+                }
+                catch (Exception ex) // Catch all other exceptions
+                {
+                    LoggingService.LogError($"[{nameof(NotepadsMainPage)}] Failed to load last session: {ex}");
+                    AnalyticsService.TrackEvent("SessionManager_FailedToLoadLastSession_UnhandledException", new Dictionary<string, string>() { { "Exception", ex.Message } });
                 }
             }
 
             if (_appLaunchFiles != null && _appLaunchFiles.Count > 0)
             {
-                loadedCount += await OpenFiles(_appLaunchFiles);
+                loadedCount += await OpenFilesAsync(_appLaunchFiles);
                 _appLaunchFiles = null;
             }
             else if (_appLaunchCmdDir != null)
             {
-                var file = await FileSystemUtility.OpenFileFromCommandLine(_appLaunchCmdDir, _appLaunchCmdArgs);
-                if (file != null && await OpenFile(file))
+                var file = await FileSystemUtility.OpenFileFromCommandLineAsync(_appLaunchCmdDir, _appLaunchCmdArgs);
+                if (file != null && await OpenFileAsync(file))
                 {
                     loadedCount++;
                 }
@@ -244,11 +277,6 @@
                 {
                     NotepadsCore.OpenNewTextEditor(_defaultNewFileName);
                 }
-
-                if (!App.IsPrimaryInstance)
-                {
-                    NotificationCenter.Instance.PostNotification(_resourceLoader.GetString("App_ShadowWindowIndicator_Description"), 4000);
-                }
                 _loaded = true;
             }
 
@@ -258,7 +286,7 @@
                 SessionManager.StartSessionBackup();
             }
 
-            await BuildOpenRecentButtonSubItems();
+            await BuildOpenRecentButtonSubItemsAsync();
 
             if (!App.IsGameBarWidget)
             {
@@ -308,7 +336,7 @@
                      args.WindowActivationState == Windows.UI.Core.CoreWindowActivationState.CodeActivated)
             {
                 LoggingService.LogInfo($"[{nameof(NotepadsMainPage)}] CoreWindow Activated.", consoleOnly: true);
-                Task.Run(() => ApplicationSettingsStore.Write(SettingsKey.ActiveInstanceIdStr, App.Id.ToString()));
+                Task.Run(() => ApplicationSettingsStore.Write(SettingsKey.ActiveInstanceIdStr, App.InstanceId.ToString()));
                 NotepadsCore.GetSelectedTextEditor()?.StartCheckingFileStatusPeriodically();
                 if (AppSettingsService.IsSessionSnapshotEnabled)
                 {
@@ -370,12 +398,8 @@
 
                     foreach (var textEditor in NotepadsCore.GetAllTextEditors())
                     {
-                        if (await Save(textEditor, saveAs: false, ignoreUnmodifiedDocument: true, rebuildOpenRecentItems: false))
+                        if (await SaveAsync(textEditor, saveAs: false, ignoreUnmodifiedDocument: true, rebuildOpenRecentItems: false))
                         {
-                            if (count == 1)
-                            {
-                                _appShouldExitAfterLastEditorClosed = true;
-                            }
                             NotepadsCore.DeleteTextEditor(textEditor);
                             count--;
                         }
@@ -385,7 +409,7 @@
                     if (count > 0)
                     {
                         e.Handled = true;
-                        await BuildOpenRecentButtonSubItems();
+                        await BuildOpenRecentButtonSubItemsAsync();
                     }
                     else
                     {
@@ -469,11 +493,28 @@
             }
         }
 
-        private void OnTextEditorUnloaded(object sender, ITextEditor textEditor)
+        private async void OnTextEditorUnloaded(object sender, ITextEditor textEditor)
         {
-            if (NotepadsCore.GetNumberOfOpenedTextEditors() == 0 && !_appShouldExitAfterLastEditorClosed)
+            if (NotepadsCore.GetNumberOfOpenedTextEditors() == 0)
             {
-                NotepadsCore.OpenNewTextEditor(_defaultNewFileName);
+                if (AppSettingsService.IsSessionSnapshotEnabled)
+                {
+                    await SessionManager.SaveSessionAsync(() => { SessionManager.IsBackupEnabled = false; });
+                }
+
+                if (_lastTabMovedToAnotherInstance || AppSettingsService.ExitWhenLastTabClosed)
+                {
+                    if (!await ApplicationView.GetForCurrentView().TryConsolidateAsync())
+                    {
+                        AnalyticsService.TrackEvent("FailedToConsolidateOnExit");
+                    }
+
+                    Application.Current.Exit();
+                }
+                else
+                {
+                    NotepadsCore.OpenNewTextEditor(_defaultNewFileName);
+                }
             }
         }
 
@@ -500,34 +541,24 @@
             NotificationCenter.Instance.PostNotification(_resourceLoader.GetString("TextEditor_NotificationMsg_FileSaved"), 1500);
         }
 
-        private async void OnTextEditorMovedToAnotherAppInstance(object sender, ITextEditor textEditor)
+        private void OnTextEditorMovedToAnotherAppInstance(object sender, ITextEditor textEditor)
         {
-            // Notepads should exit if last tab was dragged to another app instance
             if (NotepadsCore.GetNumberOfOpenedTextEditors() == 1)
             {
-                _appShouldExitAfterLastEditorClosed = true;
-
-                NotepadsCore.DeleteTextEditor(textEditor);
-
-                if (AppSettingsService.IsSessionSnapshotEnabled)
-                {
-                    await SessionManager.SaveSessionAsync(() => { SessionManager.IsBackupEnabled = false; });
-                }
-
-                Application.Current.Exit();
+                _lastTabMovedToAnotherInstance = true;
             }
-            else
-            {
-                NotepadsCore.DeleteTextEditor(textEditor);
-            }
+            NotepadsCore.DeleteTextEditor(textEditor);
         }
 
         private async void OnTextEditorClosing(object sender, ITextEditor textEditor)
         {
-            if (NotepadsCore.GetNumberOfOpenedTextEditors() == 1 && textEditor.IsModified == false && textEditor.EditingFile == null)
+            if (!AppSettingsService.ExitWhenLastTabClosed &&
+                NotepadsCore.GetNumberOfOpenedTextEditors() == 1 &&
+                textEditor.IsModified == false &&
+                textEditor.EditingFile == null)
             {
-                // Do nothing
-                // Take no action if user is trying to close the last tab and the last tab is a new empty document
+                // Do nothing if user doesn't want closing window when last tab closed
+                // And if user is trying to close the last tab and the last tab is a new empty document
             }
             else if (!textEditor.IsModified)
             {
@@ -540,7 +571,7 @@
                 var setCloseSaveReminderDialog = new SetCloseSaveReminderDialog(file,
                     saveAction: async () =>
                     {
-                        if (NotepadsCore.GetAllTextEditors().Contains(textEditor) && await Save(textEditor, saveAs: false))
+                        if (NotepadsCore.GetAllTextEditors().Contains(textEditor) && await SaveAsync(textEditor, saveAs: false))
                         {
                             NotepadsCore.DeleteTextEditor(textEditor);
                         }
@@ -588,8 +619,8 @@
             {
                 if (storageItem is StorageFile file)
                 {
-                    await OpenFile(file);
-                    Analytics.TrackEvent("OnStorageFileDropped");
+                    await OpenFileAsync(file);
+                    AnalyticsService.TrackEvent("OnStorageFileDropped");
                 }
             }
         }

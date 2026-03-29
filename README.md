@@ -11,11 +11,11 @@
   <a style="text-decoration:none" href="https://www.microsoft.com/store/apps/9nhl4nsc67wm">
     <img src="https://img.shields.io/badge/Microsoft%20Store-Download-orange.svg?style=flat-square" alt="Store link" />
   </a>
-  <a style="text-decoration:none" href="https://github.com/JasonStein/Notepads/releases">
-    <img src="https://img.shields.io/github/release/jasonstein/notepads.svg?label=latest%20version&style=flat-square" alt="Releases" />
+  <a style="text-decoration:none" href="https://github.com/0x7c13/Notepads/releases">
+    <img src="https://img.shields.io/github/release/0x7c13/notepads.svg?label=latest%20version&style=flat-square" alt="Releases" />
   </a>
   <a style="text-decoration:none">
-    <img src="https://img.shields.io/badge/platform-windows%2010%20%7C%20uwp-yellow.svg?style=flat-square" alt="Platform" />
+    <img src="https://img.shields.io/badge/platform-Windows%20%7C%20UWP-yellow.svg?style=flat-square" alt="Platform" />
   </a>
   <a style="text-decoration:none" href="https://discord.gg/VqetCub">
     <img src="https://img.shields.io/discord/588473626651787274.svg?style=flat-square" alt="Discord" />
@@ -24,7 +24,7 @@
 
 ## What is Notepads and why do I care?
 
-I have been waiting long enough for a modern Windows 10 notepad app to come before I decided to create one myself. Don’t get me wrong, Notepad++, VS Code, and Sublime are great text editors. I have used them all and I will continue to use them in the future. However, they are either too heavy or look less appealing. There are times that I just wanted to use Windows notepad for things like writing notes or editing config files. So I decided to create a win32 notepad replacement here and try to give it a modern look and feel. Most importantly, it has to be blazingly fast and appeal to everyone.
+I have been waiting long enough for a modern Windows 10 notepad app to come before I decided to create one myself. Don’t get me wrong, Notepad++, VS Code, and Sublime are great text editors. I have used them all and I will continue to use them in the future. However, they are either too heavy or look less appealing. There are times that I just wanted to use Windows notepad for things like writing notes or editing config files. So I decided to create a win32 notepad replacement here and try to give it a modern look and feel. Most importantly, it has to be blazingly fast and appeals to everyone.
 
 So here comes the “Notepads” 🎉 (s stands for Sets).
 
@@ -40,14 +40,6 @@ So here comes the “Notepads” 🎉 (s stands for Sets).
 ![Screenshot Markdown](ScreenShots/2.png?raw=true "Markdown")
 ![Screenshot DiffViewer](ScreenShots/3.png?raw=true "DiffViewer")
 ![Screenshot Light](ScreenShots/4.png?raw=true "Light")
-
-******* 📣 Notepads App is still under active development. *******
-
-## Status update
-
-[[08-12-2019] Status update and KPI report](https://github.com/JasonStein/Notepads/issues/138)
-
-![image](https://user-images.githubusercontent.com/1166162/62916469-75eb5800-bd4d-11e9-9f97-a632792400c0.png)
 
 ## Shortcuts:
 
@@ -67,20 +59,16 @@ So here comes the “Notepads” 🎉 (s stands for Sets).
 
 ## Downloads:
 
-Notepads is available in Microsoft Store. You can get the latest version of Notepads here for free: [Microsoft Store Link](https://www.microsoft.com/store/apps/9nhl4nsc67wm).
+Notepads is available in the Microsoft Store. You can get the latest version of Notepads here for free: [Microsoft Store Link](https://www.microsoft.com/store/apps/9nhl4nsc67wm).
 
-You can also use Windows Package Manager to install notepads:
+You can also use the Windows Package Manager to install notepads:
 ```cmd
-winget install notepads
+winget install "Notepads App"
 ```
-
-## Roadmap:
-
-* [Project Roadmap](ROADMAP.md)
 
 ## Changelog:
 
-* [Notepads Releases](https://github.com/JasonStein/Notepads/releases)
+* [Notepads Releases](https://github.com/0x7c13/Notepads/releases)
 
 ## Disclaimer and Privacy statement:
 
@@ -91,11 +79,13 @@ To be 100% transparent:
 * I will not record your typings or read any of your files created in Notepads including file name and file path.
 * No typings or files will be sent to me or third parties.
 
-I am using analytics service "AppCenter" to collect basic usage data plus some minimum telemetry to help me debug runtime errors. Here is the thread I made clear on this topic: https://github.com/JasonStein/Notepads/issues/334
+I am using analytics service "AppCenter" to collect basic usage data plus some minimum telemetry to help me debug runtime errors. Here is the thread I made clear on this topic: https://github.com/0x7c13/Notepads/issues/334
 
 Feel free to review the source code or build your own version of Notepads since it is 100% open sourced.
 
-You might notice that I work for Microsoft but Notepads is my personal project that I accomplish during free time (to empower every person and every organization on the planet to achieve more😃). I do not work for the Windows team, nor do I work for a Microsoft UX/App team. I am not expert on creating Windows apps either. I learned how to code UWP as soon as I started this project, so don’t put too much hope on me or treat it as a project sponsored by Microsoft.
+#### More to read here: [[Privacy Policy](PRIVACY.md)]
+
+TL;DR: You might notice that I work for Microsoft but Notepads is my personal project that I accomplish during free time (to empower every person and every organization on the planet to achieve more😃). I do not work for the Windows team, nor do I work for a Microsoft UX/App team. I am not expert on creating Windows apps either. I learned how to code UWP as soon as I started this project, so don’t put too much hope on me or treat it as a project sponsored by Microsoft.
 
 ## Contributing:
 
@@ -125,7 +115,7 @@ You might notice that I work for Microsoft but Notepads is my personal project t
 * Localization Contributors:
     * [fr-FR][French (France)]: [François Rousselet](https://github.com/frousselet), [François-Joseph du Fou](https://github.com/FJduFou), [Armand Delessert](https://github.com/ArmandDelessert)
     * [es-ES][Spanish (Spain)]: [Jose Pinilla](https://github.com/joseppinilla)
-    * [zh-CN][Chinese (S)]: [lindexi](https://github.com/lindexi), [walterlv](https://github.com/walterlv), [Jackie Liu](https://github.com/JasonStein)
+    * [zh-CN][Chinese (S)]: [lindexi](https://github.com/lindexi), [walterlv](https://github.com/walterlv), [0x7c13](https://github.com/0x7c13)
     * [hu-HU][Hungarian (Hungary)]: [Csányi István](https://github.com/AmionSky), [Kristóf Kékesi](https://github.com/KristofKekesi)
     * [tr-TR][Turkish (Turkey)]: [Mert Can Demir](https://github.com/validatedev), [Emirhakan Tanhan](https://github.com/EmirhakanTanhan)
     * [ja-JP][Japanese (Japan)]: [Mamoru Satoh](https://github.com/pnp0a03)
@@ -145,10 +135,11 @@ You might notice that I work for Microsoft but Notepads is my personal project t
     * [pt-PT][Portuguese (Portugal)]: [O.Leitão](https://github.com/oleitao)
     * [sr-Latn][Serbian (Latin)]: [bzzrak](https://github.com/bzzrak)
     * [sr-cyrl][Serbian (Cyrillic)]: [bzzrak](https://github.com/bzzrak)
+    * [nl-NL][Dutch (Netherlands)]: [Stephan Paternotte](https://github.com/Stephan-P)
 
 * Notepads CI/CD pipeline: Built with ❤ by [Pipeline Foundation](https://pipeline.foundation)
 
-[![](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/images/0)](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/links/0)[![](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/images/1)](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/links/1)[![](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/images/2)](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/links/2)[![](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/images/3)](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/links/3)[![](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/images/4)](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/links/4)[![](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/images/5)](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/links/5)[![](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/images/6)](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/links/6)[![](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/images/7)](https://sourcerer.io/fame/JasonStein/JasonStein/Notepads/links/7)
+[![](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/images/0)](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/links/0)[![](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/images/1)](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/links/1)[![](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/images/2)](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/links/2)[![](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/images/3)](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/links/3)[![](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/images/4)](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/links/4)[![](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/images/5)](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/links/5)[![](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/images/6)](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/links/6)[![](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/images/7)](https://sourcerer.io/fame/0x7c13/0x7c13/Notepads/links/7)
 
 ## Stay tuned 📢:
 * [Notepads Discord Server](https://discord.gg/VqetCub)

@@ -1,5 +1,12 @@
-﻿namespace Notepads.Utilities
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Utilities
 {
+    using Notepads.Models;
+    using Notepads.Services;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -7,14 +14,11 @@
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
-    using Microsoft.AppCenter.Analytics;
-    using Notepads.Models;
-    using Notepads.Services;
+    using UtfUnknown;
     using Windows.ApplicationModel.Resources;
     using Windows.Storage;
     using Windows.Storage.FileProperties;
     using Windows.Storage.Provider;
-    using UtfUnknown;
 
     public enum InvalidFilenameError
     {
@@ -29,6 +33,12 @@
 
     public static class FileSystemUtility
     {
+        // Retriable FileIO errors
+        private const Int32 ERROR_ACCESS_DENIED = unchecked((Int32)0x80070005);
+        private const Int32 ERROR_SHARING_VIOLATION = unchecked((Int32)0x80070020);
+        private const Int32 ERROR_UNABLE_TO_REMOVE_REPLACED = unchecked((Int32)0x80070497);
+        private const Int32 ERROR_FAIL = unchecked((Int32)0x80004005);
+
         private static readonly ResourceLoader ResourceLoader = ResourceLoader.GetForCurrentView();
 
         private const string WslRootPath = "\\\\wsl$\\";
@@ -112,7 +122,7 @@
             return Path.GetFullPath(finalPath);
         }
 
-        public static async Task<StorageFile> OpenFileFromCommandLine(string dir, string args)
+        public static async Task<StorageFile> OpenFileFromCommandLineAsync(string dir, string args)
         {
             string path = null;
 
@@ -133,7 +143,7 @@
 
             LoggingService.LogInfo($"[{nameof(FileSystemUtility)}] OpenFileFromCommandLine: {path}");
 
-            return await GetFile(path);
+            return await GetFileAsync(path);
         }
 
         private static string ReplaceEnvironmentVariables(string args)
@@ -173,7 +183,7 @@
             return Environment.ExpandEnvironmentVariables(args);
         }
 
-        public static string GetAbsolutePathFromCommandLine(string dir, string args, string appName)
+        private static string GetAbsolutePathFromCommandLine(string dir, string args, string appName)
         {
             if (string.IsNullOrEmpty(args)) return null;
 
@@ -206,7 +216,7 @@
                 }
             }
 
-            // Replace all forward slash with platform supported directory separator 
+            // Replace all forward slash with platform supported directory separator
             path = path.Trim('/').Replace('/', Path.DirectorySeparatorChar);
 
             if (IsFullPath(path))
@@ -238,10 +248,22 @@
                 // notepads <file> ...
                 // notepads.exe <file>
 
+                if (args.StartsWith($"{appName}-Dev.exe",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    args = args.Substring($"{appName}-Dev.exe".Length);
+                }
+
                 if (args.StartsWith($"{appName}.exe",
                     StringComparison.OrdinalIgnoreCase))
                 {
                     args = args.Substring($"{appName}.exe".Length);
+                }
+
+                if (args.StartsWith($"{appName}-Dev",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    args = args.Substring($"{appName}-Dev".Length);
                 }
 
                 if (args.StartsWith(appName,
@@ -270,14 +292,14 @@
             return args;
         }
 
-        public static async Task<BasicProperties> GetFileProperties(StorageFile file)
+        private static async Task<BasicProperties> GetFilePropertiesAsync(StorageFile file)
         {
             return await file.GetBasicPropertiesAsync();
         }
 
-        public static async Task<long> GetDateModified(StorageFile file)
+        public static async Task<long> GetDateModifiedAsync(StorageFile file)
         {
-            var properties = await GetFileProperties(file);
+            var properties = await GetFilePropertiesAsync(file);
             var dateModified = properties.DateModified;
             return dateModified.ToFileTime();
         }
@@ -287,7 +309,7 @@
             return (file.Attributes & Windows.Storage.FileAttributes.ReadOnly) != 0;
         }
 
-        public static async Task<bool> IsFileWritable(StorageFile file)
+        private static async Task<bool> IsFileWritableAsync(StorageFile file)
         {
             try
             {
@@ -300,7 +322,7 @@
             }
         }
 
-        public static async Task<StorageFile> GetFile(string filePath)
+        public static async Task<StorageFile> GetFileAsync(string filePath)
         {
             try
             {
@@ -312,13 +334,13 @@
             }
         }
 
-        public static async Task<TextFile> ReadFile(string filePath, bool ignoreFileSizeLimit, Encoding encoding)
+        public static async Task<TextFile> ReadFileAsync(string filePath, bool ignoreFileSizeLimit, Encoding encoding)
         {
-            StorageFile file = await GetFile(filePath);
-            return file == null ? null : await ReadFile(file, ignoreFileSizeLimit, encoding);
+            StorageFile file = await GetFileAsync(filePath);
+            return file == null ? null : await ReadFileAsync(file, ignoreFileSizeLimit, encoding);
         }
 
-        public static async Task<TextFile> ReadFile(StorageFile file, bool ignoreFileSizeLimit, Encoding encoding = null)
+        public static async Task<TextFile> ReadFileAsync(StorageFile file, bool ignoreFileSizeLimit, Encoding encoding = null)
         {
             var fileProperties = await file.GetBasicPropertiesAsync();
 
@@ -431,12 +453,12 @@
                 }
                 else if (stream.Length > 0) // We do not care about empty file
                 {
-                    Analytics.TrackEvent("UnableToDetectEncoding");
+                    AnalyticsService.TrackEvent("UnableToDetectEncoding");
                 }
             }
             catch (Exception ex)
             {
-                Analytics.TrackEvent("TryGuessEncodingFailedWithException", new Dictionary<string, string>()
+                AnalyticsService.TrackEvent("TryGuessEncodingFailedWithException", new Dictionary<string, string>()
                 {
                     { "Exception", ex.ToString() },
                     { "Message", ex.Message }
@@ -541,13 +563,60 @@
         /// Exception will be thrown if not succeeded
         /// Exception should be caught and handled by caller
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="encoding"></param>
-        /// <param name="file"></param>
-        /// <returns></returns>
-        public static async Task WriteToFile(string text, Encoding encoding, StorageFile file)
+        public static async Task WriteTextToFileAsync(StorageFile file, string text, Encoding encoding)
         {
-            bool usedDeferUpdates = true;
+            if (IsFileReadOnly(file) || !await IsFileWritableAsync(file))
+            {
+                await ExecuteFileIOOperationWithRetries(file,
+                    "FileSystemUtility_WriteTextToFileAsync_UsingPathIO",
+                    async () =>
+                    {
+                        // For file(s) dragged into Notepads, they are read-only
+                        // StorageFile API won't work on read-only files but can be written by Win32 PathIO API (exploit?)
+                        // In case the file is actually read-only, WriteBytesAsync will throw UnauthorizedAccessException
+                        var content = encoding.GetBytes(text);
+                        var result = encoding.GetPreamble().Concat(content).ToArray();
+                        await PathIO.WriteBytesAsync(file.Path, result);
+                    },
+                    maxRetryAttempts: 3); // Retry 3 times for this case.
+            }
+            else // Use StorageFile API to save
+            {
+                await ExecuteFileIOOperationWithRetries(file,
+                    "FileSystemUtility_WriteTextToFileAsync_UsingStreamWriter",
+                    async () =>
+                    {
+                        using (var stream = await file.OpenStreamForWriteAsync())
+                        using (var writer = new StreamWriter(stream, encoding))
+                        {
+                            stream.Position = 0;
+                            await writer.WriteAsync(text);
+                            await writer.FlushAsync();
+                            stream.SetLength(stream.Position); // Truncate
+                        }
+                    },
+                    maxRetryAttempts: 5); // Retry 5 times for this case
+            }
+        }
+
+        /// <summary>
+        /// Save text to a file with UTF-8 encoding using FileIO API with retries for retriable errors
+        /// </summary>
+        public static async Task WriteTextToFileAsync(StorageFile storageFile, string text)
+        {
+            await ExecuteFileIOOperationWithRetries(storageFile,
+                "FileSystemUtility_WriteTextToFileAsync_UsingFileIO",
+                async () => await FileIO.WriteTextAsync(storageFile, text),
+                maxRetryAttempts: 10); // Retry 10 times for this case since it is used for saving the session data.
+        }
+
+        private static async Task ExecuteFileIOOperationWithRetries(StorageFile file,
+            string operationName,
+            Func<Task> action,
+            int maxRetryAttempts)
+        {
+            bool deferUpdatesUsed = true;
+            int retryAttempts = 0;
 
             try
             {
@@ -558,60 +627,93 @@
             catch (Exception)
             {
                 // If DeferUpdates fails, just ignore it and try to save the file anyway
-                usedDeferUpdates = false;
+                deferUpdatesUsed = false;
             }
 
-            // Write to file
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            HashSet<string> errorCodes = new HashSet<string>();
 
             try
             {
-                if (IsFileReadOnly(file) || !await IsFileWritable(file))
+                while (retryAttempts < maxRetryAttempts)
                 {
-                    // For file(s) dragged into Notepads, they are read-only
-                    // StorageFile API won't work on read-only files but can be written by Win32 PathIO API (exploit?)
-                    // In case the file is actually read-only, WriteBytesAsync will throw UnauthorizedAccessException
-                    var content = encoding.GetBytes(text);
-                    var result = encoding.GetPreamble().Concat(content).ToArray();
-                    await PathIO.WriteBytesAsync(file.Path, result);
-                }
-                else // Use StorageFile API to save 
-                {
-                    using (var stream = await file.OpenStreamForWriteAsync())
-                    using (var writer = new StreamWriter(stream, encoding))
+                    try
                     {
-                        stream.Position = 0;
-                        await writer.WriteAsync(text);
-                        await writer.FlushAsync();
-                        stream.SetLength(stream.Position); // Truncate
+                        retryAttempts++;
+                        await action.Invoke(); // Execute FileIO action
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Rethrow the last attempt exception regardless of its type
+                        if (retryAttempts == maxRetryAttempts)
+                        {
+                            throw;
+                        }
+                        // Delay and retry for retriable errors
+                        else if ((ex.HResult == ERROR_ACCESS_DENIED) ||
+                                (ex.HResult == ERROR_SHARING_VIOLATION) ||
+                                (ex.HResult == ERROR_UNABLE_TO_REMOVE_REPLACED) ||
+                                (ex.HResult == ERROR_FAIL))
+                        {
+                            errorCodes.Add("0x" + Convert.ToString(ex.HResult, 16));
+                            await Task.Delay(10);
+                        }
+                        else // Throw immediately for other errors
+                        {
+                            throw;
+                        }
                     }
                 }
             }
             finally
             {
-                if (usedDeferUpdates)
+                string fileUpdateStatus = string.Empty;
+
+                if (deferUpdatesUsed)
                 {
                     // Let Windows know that we're finished changing the file so the
                     // other app can update the remote version of the file.
                     FileUpdateStatus status = await CachedFileManager.CompleteUpdatesAsync(file);
-                    if (status != FileUpdateStatus.Complete)
+                    fileUpdateStatus = status.ToString();
+                }
+
+                if (retryAttempts > 1) // Retry attempts were used
+                {
+                    // Track retry attempts to better understand the failed scenarios
+                    // File name, path and content are not included to respect/protect user privacy
+                    AnalyticsService.TrackEvent(operationName, new Dictionary<string, string>()
                     {
-                        // Track FileUpdateStatus here to better understand the failed scenarios
-                        // File name, path and content are not included to respect/protect user privacy
-                        Analytics.TrackEvent("CachedFileManager_CompleteUpdatesAsync_Failed", new Dictionary<string, string>()
-                        {
-                            { "FileUpdateStatus", nameof(status) }
-                        });
-                    }
+                        { "RetryAttempts", retryAttempts.ToString() },
+                        { "DeferUpdatesUsed" , deferUpdatesUsed.ToString() },
+                        { "ErrorCodes", string.Join(", ", errorCodes) },
+                        { "FileUpdateStatus", fileUpdateStatus }
+                    });
                 }
             }
         }
 
-        internal static async Task DeleteFile(string filePath, StorageDeleteOption deleteOption = StorageDeleteOption.PermanentDelete)
+        public static async Task<StorageFile> GetOrCreateFileAsync(StorageFolder folder, string fileName)
         {
             try
             {
-                var file = await GetFile(filePath);
+                return await folder.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists);
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"[{nameof(FileSystemUtility)}] Failed to get or create file, Exception: {ex.Message}");
+                AnalyticsService.TrackEvent("GetOrCreateFileAsync_Failed", new Dictionary<string, string>()
+                {
+                    { "Exception", ex.ToString() },
+                });
+                throw; // Rethrow
+            }
+        }
+
+        internal static async Task DeleteFileAsync(string filePath, StorageDeleteOption deleteOption = StorageDeleteOption.PermanentDelete)
+        {
+            try
+            {
+                var file = await GetFileAsync(filePath);
                 if (file != null)
                 {
                     await file.DeleteAsync(deleteOption);
@@ -623,18 +725,18 @@
             }
         }
 
-        public static async Task<StorageFolder> GetOrCreateAppFolder(string folderName)
+        public static async Task<StorageFolder> GetOrCreateAppFolderAsync(string folderName)
         {
             StorageFolder localFolder = ApplicationData.Current.LocalFolder;
             return await localFolder.CreateFolderAsync(folderName, CreationCollisionOption.OpenIfExists);
         }
 
-        public static async Task<StorageFile> CreateFile(StorageFolder folder, string fileName, CreationCollisionOption option = CreationCollisionOption.ReplaceExisting)
+        public static async Task<StorageFile> CreateFileAsync(StorageFolder folder, string fileName, CreationCollisionOption option = CreationCollisionOption.ReplaceExisting)
         {
             return await folder.CreateFileAsync(fileName, option);
         }
 
-        public static async Task<bool> FileExists(StorageFile file)
+        public static async Task<bool> FileExistsAsync(StorageFile file)
         {
             try
             {

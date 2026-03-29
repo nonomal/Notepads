@@ -1,9 +1,13 @@
-﻿namespace Notepads.Views.MainPage
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Views.MainPage
 {
     using System;
     using Windows.UI.ViewManagement;
     using Windows.UI.Xaml;
-    using Microsoft.AppCenter.Analytics;
     using Notepads.Services;
     using Windows.Foundation;
 
@@ -52,7 +56,7 @@
                 if (!modeSwitched)
                 {
                     LoggingService.LogError($"[{nameof(NotepadsMainPage)}] Failed to enter CompactOverlay view mode.");
-                    Analytics.TrackEvent("FailedToEnterCompactOverlayViewMode");
+                    AnalyticsService.TrackEvent("FailedToEnterCompactOverlayViewMode");
                 }
             }
             else if (ApplicationView.GetForCurrentView().ViewMode == ApplicationViewMode.CompactOverlay)
@@ -62,7 +66,7 @@
                 if (!modeSwitched)
                 {
                     LoggingService.LogError($"[{nameof(NotepadsMainPage)}] Failed to enter Default view mode.");
-                    Analytics.TrackEvent("FailedToEnterDefaultViewMode");
+                    AnalyticsService.TrackEvent("FailedToEnterDefaultViewMode");
                 }
             }
         }
@@ -87,7 +91,7 @@
                 else
                 {
                     LoggingService.LogError($"[{nameof(NotepadsMainPage)}] Failed to enter full screen view mode.");
-                    Analytics.TrackEvent("FailedToEnterFullScreenViewMode");
+                    AnalyticsService.TrackEvent("FailedToEnterFullScreenViewMode");
                 }
             }
         }

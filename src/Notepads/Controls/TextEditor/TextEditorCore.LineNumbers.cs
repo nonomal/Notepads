@@ -1,4 +1,9 @@
-﻿namespace Notepads.Controls.TextEditor
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Controls.TextEditor
 {
     using System;
     using System.Collections.Generic;
@@ -12,7 +17,7 @@
 
     public partial class TextEditorCore
     {
-        public bool _displayLineNumbers;
+        private bool _displayLineNumbers;
 
         public bool DisplayLineNumbers
         {
@@ -36,11 +41,11 @@
         }
 
         private readonly IList<TextBlock> _renderedLineNumberBlocks = new List<TextBlock>();
-        private readonly Dictionary<string, double> _miniRequisiteIntegerTextRenderingWidthCache = new Dictionary<string, double>();
+        private readonly Dictionary<string, double> _minRequisiteIntegerTextRenderingWidthCache = new Dictionary<string, double>();
         private readonly SolidColorBrush _lineNumberDarkModeForegroundBrush = new SolidColorBrush("#99EEEEEE".ToColor());
         private readonly SolidColorBrush _lineNumberLightModeForegroundBrush = new SolidColorBrush("#99000000".ToColor());
 
-        public void ShowLineNumbers()
+        private void ShowLineNumbers()
         {
             if (!_loaded) return;
 
@@ -51,7 +56,7 @@
             UpdateLineHighlighterAndIndicator();
         }
 
-        public void HideLineNumbers()
+        private void HideLineNumbers()
         {
             if (!_loaded) return;
 
@@ -127,9 +132,9 @@
         {
             var cacheKey = $"{fontFamily.Source}-{(int)fontSize}-{numberTextLength}";
 
-            if (_miniRequisiteIntegerTextRenderingWidthCache.ContainsKey(cacheKey))
+            if (_minRequisiteIntegerTextRenderingWidthCache.ContainsKey(cacheKey))
             {
-                return _miniRequisiteIntegerTextRenderingWidthCache[cacheKey];
+                return _minRequisiteIntegerTextRenderingWidthCache[cacheKey];
             }
 
             double minRequisiteWidth = 0;
@@ -144,7 +149,7 @@
                 }
             }
 
-            _miniRequisiteIntegerTextRenderingWidthCache[cacheKey] = minRequisiteWidth;
+            _minRequisiteIntegerTextRenderingWidthCache[cacheKey] = minRequisiteWidth;
             return minRequisiteWidth;
         }
 

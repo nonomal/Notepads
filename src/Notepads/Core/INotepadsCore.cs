@@ -1,4 +1,9 @@
-﻿namespace Notepads.Core
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Core
 {
     using System;
     using System.Collections.Generic;
@@ -31,7 +36,7 @@
         event EventHandler<IReadOnlyList<IStorageItem>> StorageItemsDropped;
         event KeyEventHandler TextEditorKeyDown;
 
-        Task<ITextEditor> CreateTextEditor(
+        Task<ITextEditor> CreateTextEditorAsync(
             Guid id,
             StorageFile file,
             Encoding encoding = null,
@@ -50,7 +55,7 @@
 
         void OpenTextEditors(ITextEditor[] editors, Guid? selectedEditorId = null);
 
-        Task SaveContentToFileAndUpdateEditorState(ITextEditor textEditor, StorageFile file);
+        Task SaveContentToFileAndUpdateEditorStateAsync(ITextEditor textEditor, StorageFile file);
 
         void DeleteTextEditor(ITextEditor textEditor);
 

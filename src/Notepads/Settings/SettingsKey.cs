@@ -1,4 +1,9 @@
-﻿namespace Notepads.Settings
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Settings
 {
     internal static class SettingsKey
     {
@@ -6,6 +11,7 @@
         internal static string AppVersionStr = "AppVersionStr";
         internal static string IsJumpListOutOfDateBool = "IsJumpListOutOfDateBool";
         internal static string ActiveInstanceIdStr = "ActiveInstanceIdStr";
+        internal static string ExitWhenLastTabClosed = "ExitWhenLastTabClosed";
         internal static string AlwaysOpenNewWindowBool = "AlwaysOpenNewWindowBool";
 
         // Theme related

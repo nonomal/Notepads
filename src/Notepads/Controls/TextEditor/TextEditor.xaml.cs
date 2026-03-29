@@ -5,7 +5,6 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.AppCenter.Analytics;
     using Notepads.Commands;
     using Notepads.Controls.FindAndReplace;
     using Notepads.Controls.GoTo;
@@ -150,7 +149,7 @@
 
         private readonly int _fileStatusCheckerPollingRateInSec = 6;
 
-        private readonly double _fileStatusCheckerDelayInSec = 0.2;
+        private readonly double _fileStatusCheckerDelayInSec = 0.3;
 
         private readonly SemaphoreSlim _fileStatusSemaphoreSlim = new SemaphoreSlim(1, 1);
 
@@ -383,12 +382,16 @@
                     {
                         await Task.Delay(TimeSpan.FromSeconds(_fileStatusCheckerDelayInSec), cancellationToken);
                         LoggingService.LogInfo($"[{nameof(TextEditor)}] Checking file status for \"{EditingFile.Path}\".", consoleOnly: true);
-                        await CheckAndUpdateFileStatus(cancellationToken);
+                        await CheckAndUpdateFileStatusAsync(cancellationToken);
                         await Task.Delay(TimeSpan.FromSeconds(_fileStatusCheckerPollingRateInSec), cancellationToken);
                     }
                 }, cancellationToken);
             }
             catch (TaskCanceledException)
+            {
+                // ignore
+            }
+            catch (ObjectDisposedException)
             {
                 // ignore
             }
@@ -406,7 +409,7 @@
             }
         }
 
-        private async Task CheckAndUpdateFileStatus(CancellationToken cancellationToken)
+        private async Task CheckAndUpdateFileStatusAsync(CancellationToken cancellationToken)
         {
             if (EditingFile == null) return;
 
@@ -420,13 +423,14 @@
 
             FileModificationState? newState = null;
 
-            if (!await FileSystemUtility.FileExists(EditingFile))
+            if (!await FileSystemUtility.FileExistsAsync(EditingFile))
             {
                 newState = FileModificationState.RenamedMovedOrDeleted;
             }
             else
             {
-                newState = await FileSystemUtility.GetDateModified(EditingFile) != LastSavedSnapshot.DateModifiedFileTime ?
+                long fileModifiedTime = await FileSystemUtility.GetDateModifiedAsync(EditingFile);
+                newState = fileModifiedTime != LastSavedSnapshot.DateModifiedFileTime ?
                     FileModificationState.Modified :
                     FileModificationState.Untouched;
             }
@@ -456,9 +460,9 @@
                 new KeyboardCommand<KeyRoutedEventArgs>(false, true, false, VirtualKey.P, (args) => { if (FileTypeUtility.IsPreviewSupported(FileType)) ShowHideContentPreview(); }),
                 new KeyboardCommand<KeyRoutedEventArgs>(false, true, false, VirtualKey.D, (args) => ShowHideSideBySideDiffViewer()),
                 new KeyboardCommand<KeyRoutedEventArgs>(VirtualKey.F3, (args) =>
-                    InitiateFindAndReplace(new FindAndReplaceEventArgs (_lastSearchContext, string.Empty, FindAndReplaceMode.FindOnly, SearchDirection.Next))),
+                    InitiateFindAndReplace(new FindAndReplaceEventArgs (_lastSearchContext, string.Empty, FindAndReplaceMode.FindOnly, SearchDirection.Next), out _)),
                 new KeyboardCommand<KeyRoutedEventArgs>(false, false, true, VirtualKey.F3, (args) =>
-                    InitiateFindAndReplace(new FindAndReplaceEventArgs (_lastSearchContext, string.Empty, FindAndReplaceMode.FindOnly, SearchDirection.Previous))),
+                    InitiateFindAndReplace(new FindAndReplaceEventArgs (_lastSearchContext, string.Empty, FindAndReplaceMode.FindOnly, SearchDirection.Previous), out _)),
                 new KeyboardCommand<KeyRoutedEventArgs>(VirtualKey.Escape, (args) => { OnEscapeKeyDown(); }, shouldHandle: false, shouldSwallow: true)
             });
         }
@@ -486,16 +490,11 @@
             _loaded = true;
         }
 
-        public async Task ReloadFromEditingFile()
-        {
-            await ReloadFromEditingFile(null);
-        }
-
-        public async Task ReloadFromEditingFile(Encoding encoding)
+        public async Task ReloadFromEditingFileAsync(Encoding encoding = null)
         {
             if (EditingFile != null)
             {
-                var textFile = await FileSystemUtility.ReadFile(EditingFile, ignoreFileSizeLimit: false, encoding: encoding);
+                var textFile = await FileSystemUtility.ReadFileAsync(EditingFile, ignoreFileSizeLimit: false, encoding: encoding);
                 Init(textFile, EditingFile, clearUndoQueue: false);
                 LineEndingChanged?.Invoke(this, EventArgs.Empty);
                 EncodingChanged?.Invoke(this, EventArgs.Empty);
@@ -503,7 +502,7 @@
                 CloseSideBySideDiffViewer();
                 HideGoToControl();
                 FileReloaded?.Invoke(this, EventArgs.Empty);
-                Analytics.TrackEvent(encoding == null ? "OnFileReloaded" : "OnFileReopenedWithEncoding");
+                AnalyticsService.TrackEvent(encoding == null ? "OnFileReloaded" : "OnFileReopenedWithEncoding");
             }
         }
 
@@ -596,7 +595,7 @@
             SplitPanelColumnDefinition.MinWidth = 100.0f;
             SplitPanel.Visibility = Visibility.Visible;
             GridSplitter.Visibility = Visibility.Visible;
-            Analytics.TrackEvent("MarkdownContentPreview_Opened");
+            AnalyticsService.TrackEvent("MarkdownContentPreview_Opened");
             _isContentPreviewPanelOpened = true;
         }
 
@@ -646,7 +645,7 @@
             SideBySideDiffViewer.Visibility = Visibility.Visible;
             SideBySideDiffViewer.RenderDiff(LastSavedSnapshot.Content, TextEditorCore.GetText(), ThemeSettingsService.ThemeMode);
             SideBySideDiffViewer.Focus();
-            Analytics.TrackEvent("SideBySideDiffViewer_Opened");
+            AnalyticsService.TrackEvent("SideBySideDiffViewer_Opened");
         }
 
         public void CloseSideBySideDiffViewer()
@@ -709,23 +708,23 @@
             return TextEditorCore.IsEnabled;
         }
 
-        public async Task SaveContentToFileAndUpdateEditorState(StorageFile file)
+        public async Task SaveContentToFileAndUpdateEditorStateAsync(StorageFile file)
         {
             if (Mode == TextEditorMode.DiffPreview) CloseSideBySideDiffViewer();
-            TextFile textFile = await SaveContentToFile(file); // Will throw if not succeeded
+            TextFile textFile = await SaveContentToFileAsync(file); // Will throw if not succeeded
             FileModificationState = FileModificationState.Untouched;
             Init(textFile, file, clearUndoQueue: false, resetText: false);
             FileSaved?.Invoke(this, EventArgs.Empty);
             StartCheckingFileStatusPeriodically();
         }
 
-        private async Task<TextFile> SaveContentToFile(StorageFile file)
+        private async Task<TextFile> SaveContentToFileAsync(StorageFile file)
         {
             var text = TextEditorCore.GetText();
             var encoding = RequestedEncoding ?? LastSavedSnapshot.Encoding;
             var lineEnding = RequestedLineEnding ?? LastSavedSnapshot.LineEnding;
-            await FileSystemUtility.WriteToFile(LineEndingUtility.ApplyLineEnding(text, lineEnding), encoding, file); // Will throw if not succeeded
-            var newFileModifiedTime = await FileSystemUtility.GetDateModified(file);
+            await FileSystemUtility.WriteTextToFileAsync(file, LineEndingUtility.ApplyLineEnding(text, lineEnding), encoding); // Will throw if not succeeded
+            var newFileModifiedTime = await FileSystemUtility.GetDateModifiedAsync(file);
             return new TextFile(text, encoding, lineEnding, newFileModifiedTime);
         }
 
@@ -983,24 +982,30 @@
             FindAndReplacePlaceholder?.Dismiss();
         }
 
-        private void FindAndReplaceControl_OnFindAndReplaceButtonClicked(object sender, FindAndReplaceEventArgs e)
+        private async void FindAndReplaceControl_OnFindAndReplaceButtonClicked(object sender, FindAndReplaceEventArgs e)
         {
             TextEditorCore.Focus(FocusState.Programmatic);
-            InitiateFindAndReplace(e);
+            InitiateFindAndReplace(e, out bool found);
 
             // In case user hit "enter" key in search box instead of clicking on search button or hit F3
             // We should re-focus on FindAndReplaceControl to make the next search "flows"
             if (!(sender is Button))
             {
+                if (found)
+                {
+                    // Wait for layout to refresh (ScrollViewer scroll to the found text) before focusing
+                    await Task.Delay(10);
+                }
                 FindAndReplaceControl.Focus(string.Empty, e.FindAndReplaceMode);
             }
         }
 
-        private void InitiateFindAndReplace(FindAndReplaceEventArgs findAndReplaceEventArgs)
+        private void InitiateFindAndReplace(FindAndReplaceEventArgs findAndReplaceEventArgs, out bool found)
         {
+            found = false;
+
             if (string.IsNullOrEmpty(findAndReplaceEventArgs.SearchContext.SearchText)) return;
 
-            bool found = false;
             bool regexError = false;
 
             if (FindAndReplacePlaceholder?.Visibility == Visibility.Visible)

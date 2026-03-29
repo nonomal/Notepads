@@ -1,4 +1,9 @@
-﻿namespace Notepads.Views.Settings
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Views.Settings
 {
     using Notepads.Services;
     using Notepads.Utilities;
@@ -30,6 +35,7 @@
                 EnableSessionSnapshotToggleSwitch.IsOn = AppSettingsService.IsSessionSnapshotEnabled;
             }
 
+            ExitWhenLastTabClosedToggleSwitch.IsOn = AppSettingsService.ExitWhenLastTabClosed;
             AlwaysOpenNewWindowToggleSwitch.IsOn = AppSettingsService.AlwaysOpenNewWindow;
 
             if (App.IsGameBarWidget)
@@ -53,6 +59,7 @@
             ShowStatusBarToggleSwitch.Toggled += ShowStatusBarToggleSwitch_Toggled;
             EnableSmartCopyToggleSwitch.Toggled += EnableSmartCopyToggleSwitch_Toggled;
             EnableSessionSnapshotToggleSwitch.Toggled += EnableSessionBackupAndRestoreToggleSwitch_Toggled;
+            ExitWhenLastTabClosedToggleSwitch.Toggled += ExitWhenLastTabClosedToggleSwitch_Toggled;
             AlwaysOpenNewWindowToggleSwitch.Toggled += AlwaysOpenNewWindowToggleSwitch_Toggled;
             LanguagePicker.SelectionChanged += LanguagePicker_SelectionChanged;
         }
@@ -62,6 +69,7 @@
             ShowStatusBarToggleSwitch.Toggled -= ShowStatusBarToggleSwitch_Toggled;
             EnableSmartCopyToggleSwitch.Toggled -= EnableSmartCopyToggleSwitch_Toggled;
             EnableSessionSnapshotToggleSwitch.Toggled -= EnableSessionBackupAndRestoreToggleSwitch_Toggled;
+            ExitWhenLastTabClosedToggleSwitch.Toggled -= ExitWhenLastTabClosedToggleSwitch_Toggled;
             AlwaysOpenNewWindowToggleSwitch.Toggled -= AlwaysOpenNewWindowToggleSwitch_Toggled;
             LanguagePicker.SelectionChanged -= LanguagePicker_SelectionChanged;
         }
@@ -79,6 +87,11 @@
         private void ShowStatusBarToggleSwitch_Toggled(object sender, RoutedEventArgs e)
         {
             AppSettingsService.ShowStatusBar = ShowStatusBarToggleSwitch.IsOn;
+        }
+
+        private void ExitWhenLastTabClosedToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+        {
+            AppSettingsService.ExitWhenLastTabClosed = ExitWhenLastTabClosedToggleSwitch.IsOn;
         }
 
         private void AlwaysOpenNewWindowToggleSwitch_Toggled(object sender, RoutedEventArgs e)

@@ -1,4 +1,9 @@
-﻿namespace Notepads.Controls.TextEditor
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Controls.TextEditor
 {
     using System;
     using System.Text;
@@ -77,9 +82,7 @@
 
         void ResetEditorState(TextEditorStateMetaData metadata, string newText = null);
 
-        Task ReloadFromEditingFile();
-
-        Task ReloadFromEditingFile(Encoding encoding);
+        Task ReloadFromEditingFileAsync(Encoding encoding = null);
 
         LineEnding GetLineEnding();
 
@@ -116,7 +119,7 @@
 
         bool IsEditorEnabled();
 
-        Task SaveContentToFileAndUpdateEditorState(StorageFile file);
+        Task SaveContentToFileAndUpdateEditorStateAsync(StorageFile file);
 
         string GetContentForSharing();
 

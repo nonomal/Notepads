@@ -1,9 +1,13 @@
-﻿namespace Notepads.Services
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Services
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Microsoft.AppCenter.Analytics;
     using Windows.ApplicationModel;
     using Windows.System;
 
@@ -45,7 +49,7 @@
             catch (Exception ex)
             {
                 LoggingService.LogError($"[{nameof(NotepadsProtocolService)}] Failed to parse protocol: {uri}, exception: {ex}");
-                Analytics.TrackEvent("NotepadsProtocolService_FailedToParseProtocol", new Dictionary<string, string>()
+                AnalyticsService.TrackEvent("NotepadsProtocolService_FailedToParseProtocol", new Dictionary<string, string>()
                 {
                     { "Protocol", uri.ToString() },
                     { "Exception", ex.ToString() }
@@ -77,7 +81,7 @@
             catch (Exception ex)
             {
                 LoggingService.LogError($"[{nameof(NotepadsProtocolService)}] Failed to execute protocol: {operation}, Exception: {ex}");
-                Analytics.TrackEvent("NotepadsProtocolService_FailedToExecuteProtocol", new Dictionary<string, string>()
+                AnalyticsService.TrackEvent("NotepadsProtocolService_FailedToExecuteProtocol", new Dictionary<string, string>()
                 {
                     { "Protocol", operation.ToString() },
                     { "Exception", ex.Message }

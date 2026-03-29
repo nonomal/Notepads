@@ -1,4 +1,9 @@
-﻿namespace Notepads.Services
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Services
 {
     using System;
     using System.Threading.Tasks;
@@ -22,7 +27,7 @@
             set => ApplicationSettingsStore.Write(SettingsKey.IsJumpListOutOfDateBool, value);
         }
 
-        public static async Task<bool> UpdateJumpList()
+        public static async Task<bool> UpdateJumpListAsync()
         {
             if (!JumpList.IsSupported()) return false;
 
@@ -46,7 +51,7 @@
             return false;
         }
 
-        public static async Task<bool> ClearJumpList()
+        public static async Task<bool> ClearJumpListAsync()
         {
             if (!JumpList.IsSupported()) return false;
 

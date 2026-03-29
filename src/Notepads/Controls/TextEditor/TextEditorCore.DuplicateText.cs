@@ -1,9 +1,13 @@
-﻿namespace Notepads.Controls.TextEditor
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Controls.TextEditor
 {
     using System;
     using System.Collections.Generic;
     using Windows.UI.Text;
-    using Microsoft.AppCenter.Analytics;
     using Notepads.Services;
 
     public partial class TextEditorCore
@@ -64,7 +68,7 @@
             catch (Exception ex)
             {
                 LoggingService.LogError($"[{nameof(TextEditorCore)}] Failed to duplicate text: {ex}");
-                Analytics.TrackEvent("TextEditorCore_FailedToDuplicateText",
+                AnalyticsService.TrackEvent("TextEditorCore_FailedToDuplicateText",
                     new Dictionary<string, string> { { "Exception", ex.ToString() } });
             }
         }

@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
     mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -126,7 +126,7 @@
     <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
-    <value>Avertissement</value>
+    <value>Avis de non-responsabilité</value>
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
@@ -142,7 +142,7 @@
     <comment>AboutPage Notepads IssueAndFeatureRequests Title display text.</comment>
   </data>
   <data name="AboutPage_Notepads_SourceCodeTitle.Text" xml:space="preserve">
-    <value>Code source est disponible sur GitHub :</value>
+    <value>Code source disponible sur GitHub :</value>
     <comment>AboutPage Notepads SourceCode Title display text.</comment>
   </data>
   <data name="AboutPage_Notepads_WebsiteTitle.Text" xml:space="preserve">
@@ -298,11 +298,13 @@
     <comment>AdvancedPage SessionSnapshotSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_OnOffToggleSwitch.OffContent" xml:space="preserve">
-    <value>Activer la sauvegarde &amp; la restauration de session</value>
+    <value>Activer la sauvegarde &amp; 
+la restauration de session</value>
     <comment>AdvancedPage SessionSnapshotSettings OnOffToggleSwitch On display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_OnOffToggleSwitch.OnContent" xml:space="preserve">
-    <value>Activer la sauvegarde &amp; la restauration de session</value>
+    <value>Activer la sauvegarde &amp; 
+la restauration de session</value>
     <comment>AdvancedPage SessionSnapshotSettings OnOffToggleSwitch Off display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_Title.Text" xml:space="preserve">
@@ -420,5 +422,15 @@
   <data name="AdvancedPage_LanguagePreferenceSettings_SystemDefaultText" xml:space="preserve">
     <value>Langue du système</value>
     <comment>AdvancedPage LanguagePreferenceSettings System Default option text.</comment>
+  </data>
+  <data name="AdvancedPage_LaunchPreferenceSettings_ExitWhenLastTabClosedToggleSwitch.OffContent" xml:space="preserve">
+    <value>Quitter l'application à la 
+fermeture du dernier onglet</value>
+    <comment>AdvancedPage AppLifecyclePreferenceSettings ExitingLastTabClosesWindowToggleSwitch Off display text.</comment>
+  </data>
+  <data name="AdvancedPage_LaunchPreferenceSettings_ExitWhenLastTabClosedToggleSwitch.OnContent" xml:space="preserve">
+    <value>Quitter l'application à la 
+fermeture du dernier onglet</value>
+    <comment>AdvancedPage AppLifecyclePreferenceSettings ExitingLastTabClosesWindowToggleSwitch On display text.</comment>
   </data>
 </root>

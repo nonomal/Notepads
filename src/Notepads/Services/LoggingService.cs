@@ -1,4 +1,9 @@
-﻿namespace Notepads.Services
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Services
 {
     using System;
     using System.Collections.Concurrent;
@@ -13,7 +18,7 @@
 
     public static class LoggingService
     {
-        private const string MessageFormat = "{0} [{1}] {2}"; // {timestamp} [{level}] {message}
+        private const string MessageFormatString = "{0} [{1}] {2}"; // {timestamp} [{level}] {message}
 
         private static readonly ConcurrentQueue<string> MessageQueue = new ConcurrentQueue<string>();
         private static readonly SemaphoreSlim SemaphoreSlim = new SemaphoreSlim(1, 1);
@@ -69,7 +74,8 @@
 
         private static void LogMessage(string level, string message, bool consoleOnly)
         {
-            string formattedMessage = string.Format(MessageFormat, DateTime.UtcNow.ToString(CultureInfo.InvariantCulture), level, message);
+            string timeStamp = DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
+            string formattedMessage = string.Format(MessageFormatString, timeStamp, level, message);
 
             // Print to console
             Debug.WriteLine(formattedMessage);
@@ -100,26 +106,12 @@
             {
                 if (_logFile == null)
                 {
-                    StorageFolder logsFolder = await FileSystemUtility.GetOrCreateAppFolder("Logs");
-                    _logFile = await FileSystemUtility.CreateFile(logsFolder,
+                    StorageFolder logsFolder = await FileSystemUtility.GetOrCreateAppFolderAsync("Logs");
+                    _logFile = await FileSystemUtility.CreateFileAsync(logsFolder,
                         DateTime.UtcNow.ToString("yyyyMMddTHHmmss", CultureInfo.InvariantCulture) + ".log");
                 }
 
-                _backgroundTask = Task.Run(
-                    async () =>
-                    {
-                        while (true)
-                        {
-                            Thread.Sleep(LoggingInterval);
-
-                            // We will try to write all pending messages in our next attempt, if the current attempt failed
-                            // However, if the size of messages has become abnormally big, we know something is wrong and should abort at this point
-                            if (!await TryFlushMessageQueueAsync() && Messages.Count > 1000)
-                            {
-                                break;
-                            }
-                        }
-                    });
+                _backgroundTask = Task.Run(WriteLogMessagesAsync);
 
                 _initialized = true;
                 LogInfo($"Log file location: {_logFile.Path}", true);
@@ -135,6 +127,21 @@
             }
 
             return false;
+        }
+
+        private static async Task WriteLogMessagesAsync()
+        {
+            while (true)
+            {
+                Thread.Sleep(LoggingInterval);
+
+                // We will try to write all pending messages in our next attempt, if the current attempt failed
+                // However, if the size of messages has become abnormally big, we know something is wrong and should abort at this point
+                if (!await TryFlushMessageQueueAsync() && Messages.Count > 1000)
+                {
+                    break;
+                }
+            }
         }
 
         private static async Task<bool> TryFlushMessageQueueAsync()

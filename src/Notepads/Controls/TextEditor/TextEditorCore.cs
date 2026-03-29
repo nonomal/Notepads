@@ -1,4 +1,9 @@
-﻿namespace Notepads.Controls.TextEditor
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Controls.TextEditor
 {
     using System;
     using System.Collections.Generic;
@@ -181,7 +186,7 @@
             _lineNumberGrid.SizeChanged += OnLineNumberGridSizeChanged;
             _rootGrid.SizeChanged += OnRootGridSizeChanged;
 
-            Microsoft.Toolkit.Uwp.UI.Extensions.ScrollViewerExtensions.SetEnableMiddleClickScrolling(_contentScrollViewer, true);
+            Microsoft.Toolkit.Uwp.UI.ScrollViewerExtensions.SetEnableMiddleClickScrolling(_contentScrollViewer, true);
         }
 
         // Unhook events and clear state
@@ -221,7 +226,7 @@
 
             _lineNumberCanvas?.Children.Clear();
             _renderedLineNumberBlocks.Clear();
-            _miniRequisiteIntegerTextRenderingWidthCache.Clear();
+            _minRequisiteIntegerTextRenderingWidthCache.Clear();
 
             SelectionChanged -= OnSelectionChanged;
             TextWrappingChanged -= OnTextWrappingChanged;
@@ -256,8 +261,9 @@
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.Number0, (args) => ResetFontSizeToDefault()),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.NumberPad0, (args) => ResetFontSizeToDefault()),
                 new KeyboardCommand<KeyRoutedEventArgs>(VirtualKey.F5, (args) => InsertDateTimeString()),
-                new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.E, (args) => SearchInWeb()),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.E, async (args) => await SearchInWebAsync()),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.D, (args) => DuplicateText()),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.J, (args) => JoinText()),
                 new KeyboardCommand<KeyRoutedEventArgs>(VirtualKey.Tab, (args) => AddIndentation(AppSettingsService.EditorDefaultTabIndents)),
                 new KeyboardCommand<KeyRoutedEventArgs>(false, false, true, VirtualKey.Tab, (args) => RemoveIndentation(AppSettingsService.EditorDefaultTabIndents)),
                 new KeyboardCommand<KeyRoutedEventArgs>(false, true, false, VirtualKey.Up, (args) => MoveTextUp()),
@@ -353,7 +359,7 @@
 
         private async void OnPaste(object sender, TextControlPasteEventArgs args)
         {
-            await PastePlainTextFromWindowsClipboard(args);
+            await PastePlainTextFromWindowsClipboardAsync(args);
         }
 
         private void OnCopyingToClipboard(RichEditBox sender, TextControlCopyingToClipboardEventArgs args)
@@ -654,7 +660,7 @@
             Document.Selection.SetRange(startPosition + startOffset, endPosition - endOffset);
         }
 
-        public async Task PastePlainTextFromWindowsClipboard(TextControlPasteEventArgs args)
+        public async Task PastePlainTextFromWindowsClipboardAsync(TextControlPasteEventArgs args)
         {
             if (args != null)
             {

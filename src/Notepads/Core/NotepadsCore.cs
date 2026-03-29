@@ -1,4 +1,9 @@
-﻿namespace Notepads.Core
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Core
 {
     using System;
     using System.Collections.Generic;
@@ -23,7 +28,6 @@
     using Windows.UI.Xaml.Controls;
     using Windows.UI.Xaml.Input;
     using Windows.UI.Xaml.Media;
-    using Microsoft.AppCenter.Analytics;
 
     public class NotepadsCore : INotepadsCore
     {
@@ -44,7 +48,7 @@
 
         public event KeyEventHandler TextEditorKeyDown;
 
-        public SetsView Sets;
+        private readonly SetsView _sets;
 
         private readonly INotepadsExtensionProvider _extensionProvider;
 
@@ -68,16 +72,16 @@
             INotepadsExtensionProvider extensionProvider,
             CoreDispatcher dispatcher)
         {
-            Sets = sets;
-            Sets.SelectionChanged += SetsView_OnSelectionChanged;
-            Sets.Items.VectorChanged += SetsView_OnItemsChanged;
-            Sets.SetClosing += SetsView_OnSetClosing;
-            Sets.SetTapped += (sender, args) => { FocusOnTextEditor(args.Item as ITextEditor); };
-            Sets.SetDraggedOutside += Sets_SetDraggedOutside;
-            Sets.DragOver += Sets_DragOver;
-            Sets.Drop += Sets_Drop;
-            Sets.DragItemsStarting += Sets_DragItemsStarting;
-            Sets.DragItemsCompleted += Sets_DragItemsCompleted;
+            _sets = sets;
+            _sets.SelectionChanged += SetsView_OnSelectionChanged;
+            _sets.Items.VectorChanged += SetsView_OnItemsChanged;
+            _sets.SetClosing += SetsView_OnSetClosing;
+            _sets.SetTapped += (sender, args) => { FocusOnTextEditor(args.Item as ITextEditor); };
+            _sets.SetDraggedOutside += Sets_SetDraggedOutside;
+            _sets.DragOver += Sets_DragOver;
+            _sets.Drop += Sets_Drop;
+            _sets.DragItemsStarting += Sets_DragItemsStarting;
+            _sets.DragItemsCompleted += Sets_DragItemsCompleted;
 
             _dispatcher = dispatcher;
             _extensionProvider = extensionProvider;
@@ -89,8 +93,8 @@
         {
             await _dispatcher.CallOnUIThreadAsync(() =>
             {
-                if (Sets.Items == null) return;
-                foreach (SetsViewItem item in Sets.Items)
+                if (_sets.Items == null) return;
+                foreach (SetsViewItem item in _sets.Items)
                 {
                     item.Icon.Foreground = new SolidColorBrush(color);
                     item.SelectionIndicatorForeground = new SolidColorBrush(color);
@@ -122,25 +126,25 @@
                 var selectedEditor = GetAllTextEditors().First();
                 if (selectedEditor.EditingFile == null && !selectedEditor.IsModified)
                 {
-                    Sets.Items?.Clear();
+                    _sets.Items?.Clear();
                 }
             }
 
             if (atIndex == -1)
             {
-                Sets.Items?.Add(textEditorSetsViewItem);
+                _sets.Items?.Add(textEditorSetsViewItem);
             }
             else
             {
-                Sets.Items?.Insert(atIndex, textEditorSetsViewItem);
+                _sets.Items?.Insert(atIndex, textEditorSetsViewItem);
             }
 
             if (GetNumberOfOpenedTextEditors() > 1)
             {
-                Sets.SelectedItem = textEditorSetsViewItem;
+                _sets.SelectedItem = textEditorSetsViewItem;
                 if (atIndex == -1)
                 {
-                    Sets.ScrollToLastSet();
+                    _sets.ScrollToLastSet();
                 }
             }
         }
@@ -152,28 +156,28 @@
             foreach (var textEditor in editors)
             {
                 var editorSetsViewItem = CreateTextEditorSetsViewItem(textEditor);
-                Sets.Items?.Add(editorSetsViewItem);
+                _sets.Items?.Add(editorSetsViewItem);
                 if (selectedEditorId.HasValue && textEditor.Id == selectedEditorId.Value)
                 {
-                    Sets.SelectedItem = editorSetsViewItem;
+                    _sets.SelectedItem = editorSetsViewItem;
                     selectedEditorFound = true;
                 }
             }
 
             if (selectedEditorId == null || !selectedEditorFound)
             {
-                Sets.SelectedIndex = editors.Length - 1;
-                Sets.ScrollToLastSet();
+                _sets.SelectedIndex = editors.Length - 1;
+                _sets.ScrollToLastSet();
             }
         }
 
-        public async Task<ITextEditor> CreateTextEditor(
+        public async Task<ITextEditor> CreateTextEditorAsync(
             Guid id,
             StorageFile file,
             Encoding encoding = null,
             bool ignoreFileSizeLimit = false)
         {
-            var textFile = await FileSystemUtility.ReadFile(file, ignoreFileSizeLimit, encoding);
+            var textFile = await FileSystemUtility.ReadFileAsync(file, ignoreFileSizeLimit, encoding);
             return CreateTextEditor(id, textFile, file, file.Name);
         }
 
@@ -207,9 +211,9 @@
             return textEditor;
         }
 
-        public async Task SaveContentToFileAndUpdateEditorState(ITextEditor textEditor, StorageFile file)
+        public async Task SaveContentToFileAndUpdateEditorStateAsync(ITextEditor textEditor, StorageFile file)
         {
-            await textEditor.SaveContentToFileAndUpdateEditorState(file); // Will throw if not succeeded
+            await textEditor.SaveContentToFileAndUpdateEditorStateAsync(file); // Will throw if not succeeded
             MarkTextEditorSetSaved(textEditor);
             TextEditorSaved?.Invoke(this, textEditor);
         }
@@ -221,7 +225,7 @@
             if (item == null) return;
             item.IsEnabled = false;
             item.PrepareForClosing();
-            Sets.Items?.Remove(item);
+            _sets.Items?.Remove(item);
 
             if (item.ContextFlyout is TabContextFlyout tabContextFlyout)
             {
@@ -246,7 +250,7 @@
 
         public int GetNumberOfOpenedTextEditors()
         {
-            return Sets.Items?.Count ?? 0;
+            return _sets.Items?.Count ?? 0;
         }
 
         public bool TryGetSharingContent(ITextEditor textEditor, out string title, out string content)
@@ -258,8 +262,8 @@
 
         public bool HaveUnsavedTextEditor()
         {
-            if (Sets.Items == null || Sets.Items.Count == 0) return false;
-            foreach (SetsViewItem setsItem in Sets.Items)
+            if (_sets.Items == null || _sets.Items.Count == 0) return false;
+            foreach (SetsViewItem setsItem in _sets.Items)
             {
                 if (!(setsItem.Content is ITextEditor textEditor)) continue;
                 if (!textEditor.IsModified) continue;
@@ -270,8 +274,8 @@
 
         public bool HaveNonemptyTextEditor()
         {
-            if (Sets.Items == null || Sets.Items.Count <= 1) return false;
-            foreach (SetsViewItem setsItem in Sets.Items)
+            if (_sets.Items == null || _sets.Items.Count <= 1) return false;
+            foreach (SetsViewItem setsItem in _sets.Items)
             {
                 if (!(setsItem.Content is ITextEditor textEditor)) continue;
                 if (string.IsNullOrEmpty(textEditor.GetText())) continue;
@@ -287,49 +291,49 @@
 
         public void SwitchTo(bool next)
         {
-            if (Sets.Items == null) return;
-            if (Sets.Items.Count < 2) return;
+            if (_sets.Items == null) return;
+            if (_sets.Items.Count < 2) return;
 
-            var setsCount = Sets.Items.Count;
-            var selected = Sets.SelectedIndex;
+            var setsCount = _sets.Items.Count;
+            var selected = _sets.SelectedIndex;
 
             if (next && setsCount > 1)
             {
                 if (selected == setsCount - 1)
                 {
-                    Sets.SelectedIndex = 0;
+                    _sets.SelectedIndex = 0;
                 }
                 else
                 {
-                    Sets.SelectedIndex += 1;
+                    _sets.SelectedIndex += 1;
                 }
             }
             else if (!next && setsCount > 1)
             {
                 if (selected == 0)
                 {
-                    Sets.SelectedIndex = setsCount - 1;
+                    _sets.SelectedIndex = setsCount - 1;
                 }
                 else
                 {
-                    Sets.SelectedIndex -= 1;
+                    _sets.SelectedIndex -= 1;
                 }
             }
         }
 
         public void SwitchTo(int index)
         {
-            if (Sets.Items == null || index < 0 || index >= Sets.Items.Count) return;
-            Sets.SelectedIndex = index;
+            if (_sets.Items == null || index < 0 || index >= _sets.Items.Count) return;
+            _sets.SelectedIndex = index;
         }
 
         public void SwitchTo(ITextEditor textEditor)
         {
             var item = GetTextEditorSetsViewItem(textEditor);
-            if (Sets.SelectedItem != item)
+            if (_sets.SelectedItem != item)
             {
-                Sets.SelectedItem = item;
-                Sets.ScrollIntoView(item);
+                _sets.SelectedItem = item;
+                _sets.ScrollIntoView(item);
             }
         }
 
@@ -337,7 +341,7 @@
         {
             if (ThreadUtility.IsOnUIThread())
             {
-                if ((!((Sets.SelectedItem as SetsViewItem)?.Content is ITextEditor textEditor))) return null;
+                if ((!((_sets.SelectedItem as SetsViewItem)?.Content is ITextEditor textEditor))) return null;
                 return textEditor;
             }
             return _selectedTextEditor;
@@ -353,9 +357,9 @@
         public ITextEditor[] GetAllTextEditors()
         {
             if (!ThreadUtility.IsOnUIThread()) return _allTextEditors;
-            if (Sets.Items == null) return Array.Empty<ITextEditor>();
+            if (_sets.Items == null) return Array.Empty<ITextEditor>();
             var editors = new List<ITextEditor>();
-            foreach (SetsViewItem item in Sets.Items)
+            foreach (SetsViewItem item in _sets.Items)
             {
                 if (item.Content is ITextEditor textEditor)
                 {
@@ -389,12 +393,12 @@
 
         public double GetTabScrollViewerHorizontalOffset()
         {
-            return Sets.ScrollViewerHorizontalOffset;
+            return _sets.ScrollViewerHorizontalOffset;
         }
 
         public void SetTabScrollViewerHorizontalOffset(double offset)
         {
-            Sets.ScrollTo(offset);
+            _sets.ScrollTo(offset);
         }
 
         private SetsViewItem CreateTextEditorSetsViewItem(ITextEditor textEditor)
@@ -429,8 +433,8 @@
 
         private SetsViewItem GetTextEditorSetsViewItem(StorageFile file)
         {
-            if (Sets.Items == null) return null;
-            foreach (SetsViewItem setsItem in Sets.Items)
+            if (_sets.Items == null) return null;
+            foreach (SetsViewItem setsItem in _sets.Items)
             {
                 if (!(setsItem.Content is ITextEditor textEditor)) continue;
                 if (textEditor.EditingFilePath != null && string.Equals(textEditor.EditingFilePath, file.Path, StringComparison.OrdinalIgnoreCase))
@@ -443,8 +447,8 @@
 
         private SetsViewItem GetTextEditorSetsViewItem(ITextEditor textEditor)
         {
-            if (Sets.Items == null) return null;
-            foreach (SetsViewItem setsItem in Sets.Items)
+            if (_sets.Items == null) return null;
+            foreach (SetsViewItem setsItem in _sets.Items)
             {
                 if (setsItem.Content is ITextEditor editor)
                 {
@@ -666,7 +670,7 @@
 
                 args.Data.Properties.Add(NotepadsTextEditorMetaData, data);
                 args.Data.Properties.Add(NotepadsTextEditorGuid, editor.Id.ToString());
-                args.Data.Properties.Add(NotepadsInstanceId, App.Id.ToString());
+                args.Data.Properties.Add(NotepadsInstanceId, App.InstanceId.ToString());
                 args.Data.Properties.ApplicationName = App.ApplicationName;
 
                 ApplicationSettingsStore.Write(SetDragAndDropActionStatus, "Started");
@@ -790,7 +794,7 @@
                 }
 
                 deferral.Complete();
-                Analytics.TrackEvent("OnSetDropped");
+                AnalyticsService.TrackEvent("OnSetDropped");
             }
             catch (Exception ex)
             {
@@ -814,7 +818,7 @@
 
         private async void Sets_SetDraggedOutside(object sender, SetDraggedOutsideEventArgs e)
         {
-            if (Sets.Items?.Count > 1 && e.Set?.Content is ITextEditor textEditor)
+            if (_sets.Items?.Count > 1 && e.Set?.Content is ITextEditor textEditor)
             {
                 // Only allow untitled empty document to be dragged outside for now
                 if (!textEditor.IsModified && textEditor.EditingFile == null)

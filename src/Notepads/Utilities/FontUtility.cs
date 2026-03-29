@@ -1,4 +1,9 @@
-﻿namespace Notepads.Utilities
+﻿// ---------------------------------------------------------------------------------------------
+//  Copyright (c) 2019-2024, Jiaqi (0x7c13) Liu. All rights reserved.
+//  See LICENSE file in the project root for license information.
+// ---------------------------------------------------------------------------------------------
+
+namespace Notepads.Utilities
 {
     using System;
     using System.Collections.Generic;
@@ -8,7 +13,7 @@
     using Windows.UI.Text;
     using Windows.UI.Xaml.Controls;
     using Windows.UI.Xaml.Media;
-    using Microsoft.AppCenter.Analytics;
+    using Notepads.Services;
 
     public static class FontUtility
     {
@@ -139,7 +144,7 @@
             }
             catch (Exception ex)
             {
-                Analytics.TrackEvent("FailedToGetSystemFontFamilies", new Dictionary<string, string>()
+                AnalyticsService.TrackEvent("FailedToGetSystemFontFamilies", new Dictionary<string, string>()
                 {
                     { "Exception", ex.ToString() }
                 });
